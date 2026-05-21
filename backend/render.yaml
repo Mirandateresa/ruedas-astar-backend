@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: ruedas-astar-api
+    runtime: python
+    repo: https://github.com/TU_USUARIO/ruedas-astar-backend
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0

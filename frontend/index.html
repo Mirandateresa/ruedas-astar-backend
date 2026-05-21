@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Rutas + Asignación de Ruedas - Algoritmo A*</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .ruedas-selection {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid #d4c4b5;
+        }
+        
+        .ruedas-selection h3 {
+            color: #6b4c3a;
+            margin-bottom: 15px;
+        }
+        
+        .rueda-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .rueda-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .rueda-item label {
+            display: block;
+            font-weight: bold;
+            color: #6b4c3a;
+            margin-bottom: 8px;
+        }
+        
+        .rueda-item select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #d4c4b5;
+            border-radius: 8px;
+            background: white;
+            font-size: 1em;
+        }
+        
+        .costo-preview {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .costo-preview table {
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .costo-preview td {
+            padding: 5px;
+        }
+        
+        .total-coste {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #28a745;
+            text-align: center;
+            padding: 15px;
+            background: #d4edda;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-calcular {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #7ba38a 0%, #6b8f78 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+        
+        .btn-calcular:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(107, 76, 58, 0.3);
+        }
+        
+        .resultado-completo {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 5px solid #7ba38a;
+        }
+        
+        .resultado-ruta, .resultado-ruedas {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> Viaje por Carretera + Asignación de Ruedas</h1>
+            <p>Búsqueda con algoritmo A* y selección personalizada de ruedas</p>
+        </div>
+        
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn" style="background: linear-gradient(135deg, #7ba38a 0%, #6b8f78 100%);">🗺️ Buscador de Rutas + Ruedas</a>
+            <a href="ruedas.html" class="nav-btn" style="background: linear-gradient(135deg, #6b8f78 0%, #5a7a65 100%);">🚗 Optimización A* Ruedas</a>
+        </div>
+        
+        <div class="main-content">
+            <!-- Panel de búsqueda de ruta -->
+            <div class="search-card">
+                <h2> Buscar Ruta</h2>
+                <div class="form-group">
+                    <label for="origen"> Ciudad de Origen</label>
+                    <select id="origen" class="city-select">
+                        <option value="">Seleccione origen...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="destino"> Ciudad de Destino</label>
+                    <select id="destino" class="city-select">
+                        <option value="">Seleccione destino...</option>
+                    </select>
+                </div>
+                
+                <button id="buscarRutaBtn" class="search-btn">
+                     Buscar Ruta Óptima
+                </button>
+            </div>
+            
+            <!-- Panel de resultados de ruta -->
+            <div id="rutaResultados" class="results-card" style="display: none;">
+                <h3> Ruta Encontrada</h3>
+                <div class="ruta-info">
+                    <div class="info-item">
+                        <strong> Ruta:</strong>
+                        <div id="rutaLista" class="ruta-lista"></div>
+                    </div>
+                    <div class="info-item">
+                        <strong> Costo de Ruta:</strong>
+                        <span id="costoRuta" class="costo"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Panel de selección de ruedas (se muestra después de encontrar ruta) -->
+            <div id="ruedasPanel" class="ruedas-selection" style="display: none;">
+                <h3> Selecciona las Ruedas para tu Viaje</h3>
+                <p class="constraint" style="margin-bottom: 15px;">
+                    <strong> Importante:</strong> Cada empresa solo puede suministrar un tipo de rueda. ¡No repitas empresas!
+                </p>
+                <div id="ruedasSelectores" class="rueda-selector"></div>
+                
+                <div id="costoRuedasPreview" class="costo-preview" style="display: none;">
+                    <strong> Costo de Ruedas:</strong>
+                    <div id="detalleRuedas"></div>
+                </div>
+                
+                <button id="calcularTotalBtn" class="btn-calcular">
+                     Calcular Costo Total (Ruta + Ruedas)
+                </button>
+            </div>
+            
+            <!-- Resultado final completo -->
+            <div id="resultadoTotal" class="resultado-completo" style="display: none;">
+                <h3> Costo Total del Viaje</h3>
+                <div class="resultado-ruta">
+                    <strong> Ruta:</strong> <span id="resRuta"></span><br>
+                    <strong> Distancia:</strong> <span id="resDistancia"></span>
+                </div>
+                <div class="resultado-ruedas">
+                    <strong> Ruedas seleccionadas:</strong>
+                    <div id="resRuedas"></div>
+                </div>
+                <div class="total-coste">
+                    <strong> COSTO TOTAL:</strong> $<span id="resCostoTotal"></span>
+                </div>
+                <p id="resMensaje" style="margin-top: 10px; color: #6b8f78;"></p>
+            </div>
+            
+            <div id="mensaje" class="mensaje-card" style="display: none;">
+                <p><span id="mensajeTexto"></span></p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Algoritmo A* con heurística de distancia geodésica (línea recta) - Selecciona las ruedas y calcula el costo total</p>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

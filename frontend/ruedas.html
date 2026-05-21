@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignación de Ruedas - Algoritmo A*</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .ruedas-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .prices-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .prices-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .prices-table th {
+            background: linear-gradient(135deg, #7ba38a 0%, #6b8f78 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .prices-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #e0d5c8;
+        }
+        
+        .constraint {
+            background: #fff3cd;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            color: #856404;
+        }
+        
+        .heuristic-card {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .example-calculation {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #7ba38a;
+        }
+        
+        .solution-steps {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        
+        .step-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 3px solid #7ba38a;
+        }
+        
+        .final-solution {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .asignacion-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .total-cost {
+            margin-top: 20px;
+            padding: 15px;
+            background: #d4edda;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        
+        .solve-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #7ba38a 0%, #6b8f78 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+        
+        .solve-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(107, 76, 58, 0.3);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #7ba38a;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="ruedas-container">
+        <div class="header">
+            <h1> Asignación Óptima de Ruedas</h1>
+            <p>Problema de asignación resuelto con Algoritmo A* y Heurística Admisible</p>
+        </div>
+        
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn" style="background: linear-gradient(135deg, #7ba38a 0%, #6b8f78 100%);">🗺️ Buscador de Rutas</a>
+            <a href="ruedas.html" class="nav-btn" style="background: linear-gradient(135deg, #6b8f78 0%, #5a7a65 100%);">🚗 Asignación de Ruedas</a>
+        </div>
+        
+        <div class="main-content">
+            <!-- Tabla de precios -->
+            <div class="prices-table">
+                <h2 style="padding: 20px 20px 0 20px;"> Precios por Empresa y Tipo de Rueda (USD)</h2>
+                <table id="preciosTabla">
+                    <thead>
+                        <tr>
+                            <th>Tipo Rueda</th>
+                            <th>Empresa 1</th>
+                            <th>Empresa 2</th>
+                            <th>Empresa 3</th>
+                            <th>Empresa 4</th>
+                        </tr>
+                    </thead>
+                    <tbody id="preciosBody">
+                    </tbody>
+                </table>
+                <div class="constraint" style="margin: 0 20px 20px 20px;">
+                    <strong> Restricción:</strong> Cada empresa puede suministrar un solo tipo de rueda
+                </div>
+            </div>
+            
+            <!-- Heurística Admisible -->
+            <div class="heuristic-card">
+                <h2> Función Heurística Admisible</h2>
+                <p><strong>h(n) =</strong> Suma de los precios <strong>mínimos</strong> de los tipos de rueda no asignados,<br>
+                considerando solo las <strong>empresas no utilizadas</strong></p>
+                <div class="example-calculation">
+                    <h3> Ejemplo de cálculo heurístico:</h3>
+                    <p>Si se ha asignado: <strong>T → Empresa 1</strong> (costo $20)</p>
+                    <p>Tipos pendientes: H, V, W | Empresas disponibles: 2, 3, 4</p>
+                    <p>Precios mínimos posibles:</p>
+                    <ul>
+                        <li>Tipo H: min($50, $55, $80) = <strong>$50</strong></li>
+                        <li>Tipo V: min($40, $50, $60) = <strong>$40</strong></li>
+                        <li>Tipo W: min($50, $60, $70) = <strong>$50</strong></li>
+                    </ul>
+                    <p><strong>h(n) = 50 + 40 + 50 = 140</strong></p>
+                    <p style="color: #28a745; font-weight: bold;">✅ Esta heurística es ADMISIBLE porque nunca sobrestima el costo real</p>
+                </div>
+            </div>
+            
+            <!-- Botón para ejecutar -->
+            <button id="solveBtn" class="solve-btn">
+                 Ejecutar Algoritmo A*
+            </button>
+            
+            <!-- Loading -->
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Buscando solución óptima con A*...</p>
+            </div>
+            
+            <!-- Resultados -->
+            <div id="results" style="display: none;">
+                <div class="final-solution">
+                    <h2> Solución Óptima Encontrada</h2>
+                    <div id="finalSolution"></div>
+                    <div class="total-cost">
+                        <strong> Costo Total Mínimo: $<span id="totalCost"></span></strong>
+                    </div>
+                </div>
+                
+                <div class="solution-steps">
+                    <h3> Proceso de Asignación (Camino recorrido por A*)</h3>
+                    <div id="stepsContainer"></div>
+                </div>
+                
+                <div class="heuristic-card">
+                    <h3> Validación de Heurística Admisible</h3>
+                    <p id="validationText"></p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Algoritmo A* con heurística admisible - Garantiza solución óptima</p>
+        </div>
+    </div>
+    
+    <script src="ruedas.js"></script>
+</body>
+</html>
