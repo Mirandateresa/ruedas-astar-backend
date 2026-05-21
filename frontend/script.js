@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://ruedas-astar-api.onrender.com/api';
 
 let ciudades = [];
 let rutaActual = null;  // Guardar la ruta encontrada
