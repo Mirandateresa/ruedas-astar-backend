@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos temporales
+*.log
+.DS_Store
+
+# Base de datos local (si quieres mantener el JSON)
+# datos_ciudades.json  # Comenta esta línea si quieres subir el JSON
